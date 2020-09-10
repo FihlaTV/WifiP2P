@@ -1,10 +1,12 @@
 package leavesc.hello.filetransfer;
 
+import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
@@ -13,6 +15,8 @@ import android.os.IBinder;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.core.app.ActivityCompat;
 
 import com.bumptech.glide.Glide;
 
@@ -112,7 +116,7 @@ public class ReceiveFileActivity extends BaseActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    progressDialog.setMessage("文件名： " + new File(fileTransfer.getFilePath()).getName());
+                    progressDialog.setMessage("file name： " + new File(fileTransfer.getFilePath()).getName());
                     progressDialog.setProgress(progress);
                     progressDialog.show();
                 }
@@ -154,14 +158,14 @@ public class ReceiveFileActivity extends BaseActivity {
     }
 
     private void initView() {
-        setTitle("接收文件");
+        setTitle("Receive File");
         iv_image = findViewById(R.id.iv_image);
         tv_log = findViewById(R.id.tv_log);
         progressDialog = new ProgressDialog(this);
         progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
         progressDialog.setCancelable(false);
         progressDialog.setCanceledOnTouchOutside(false);
-        progressDialog.setTitle("正在接收文件");
+        progressDialog.setTitle("Receiving File");
         progressDialog.setMax(100);
     }
 
@@ -180,6 +184,16 @@ public class ReceiveFileActivity extends BaseActivity {
     }
 
     public void createGroup(View view) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
         wifiP2pManager.createGroup(channel, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {

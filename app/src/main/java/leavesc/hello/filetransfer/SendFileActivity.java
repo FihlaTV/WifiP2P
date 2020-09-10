@@ -1,8 +1,10 @@
 package leavesc.hello.filetransfer;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.net.wifi.WpsInfo;
 import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
@@ -16,6 +18,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -77,17 +80,18 @@ public class SendFileActivity extends BaseActivity {
             Log.e(TAG, "onConnectionInfoAvailable getHostAddress: " + wifiP2pInfo.groupOwnerAddress.getHostAddress());
             StringBuilder stringBuilder = new StringBuilder();
             if (mWifiP2pDevice != null) {
-                stringBuilder.append("连接的设备名：");
+                stringBuilder.append("\n" +
+                        "Connected device name：");
                 stringBuilder.append(mWifiP2pDevice.deviceName);
                 stringBuilder.append("\n");
-                stringBuilder.append("连接的设备的地址：");
+                stringBuilder.append("Device Address：");
                 stringBuilder.append(mWifiP2pDevice.deviceAddress);
             }
             stringBuilder.append("\n");
-            stringBuilder.append("是否群主：");
-            stringBuilder.append(wifiP2pInfo.isGroupOwner ? "是群主" : "非群主");
+            stringBuilder.append("Admin：");
+            stringBuilder.append(wifiP2pInfo.isGroupOwner ? "Is the admin" : "Not Admin");
             stringBuilder.append("\n");
-            stringBuilder.append("群主IP地址：");
+            stringBuilder.append("Admin IP address：");
             stringBuilder.append(wifiP2pInfo.groupOwnerAddress.getHostAddress());
             tv_status.setText(stringBuilder);
             if (wifiP2pInfo.groupFormed && !wifiP2pInfo.isGroupOwner) {
@@ -100,7 +104,7 @@ public class SendFileActivity extends BaseActivity {
             Log.e(TAG, "onDisconnection");
             btn_disconnect.setEnabled(false);
             btn_chooseFile.setEnabled(false);
-            showToast("处于非连接状态");
+            showToast("Not connected");
             wifiP2pDeviceList.clear();
             deviceAdapter.notifyDataSetChanged();
             tv_status.setText(null);
@@ -192,7 +196,7 @@ public class SendFileActivity extends BaseActivity {
     }
 
     private void initView() {
-        setTitle("发送文件");
+        setTitle("Send File");
         tv_myDeviceName = findViewById(R.id.tv_myDeviceName);
         tv_myDeviceAddress = findViewById(R.id.tv_myDeviceAddress);
         tv_myDeviceStatus = findViewById(R.id.tv_myDeviceStatus);
@@ -230,7 +234,7 @@ public class SendFileActivity extends BaseActivity {
             List<String> strings = Matisse.obtainPathResult(data);
             if (strings != null && !strings.isEmpty()) {
                 String path = strings.get(0);
-                Log.e(TAG, "文件路径：" + path);
+                Log.e(TAG, "Send File：" + path);
                 File file = new File(path);
                 if (file.exists() && wifiP2pInfo != null) {
                     FileTransfer fileTransfer = new FileTransfer(file.getPath(), file.length());
@@ -245,7 +249,17 @@ public class SendFileActivity extends BaseActivity {
         if (config.deviceAddress != null && mWifiP2pDevice != null) {
             config.deviceAddress = mWifiP2pDevice.deviceAddress;
             config.wps.setup = WpsInfo.PBC;
-            showLoadingDialog("正在连接 " + mWifiP2pDevice.deviceName);
+            showLoadingDialog("Connecting " + mWifiP2pDevice.deviceName);
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return;
+            }
             wifiP2pManager.connect(channel, config, new WifiP2pManager.ActionListener() {
                 @Override
                 public void onSuccess() {
@@ -254,7 +268,7 @@ public class SendFileActivity extends BaseActivity {
 
                 @Override
                 public void onFailure(int reason) {
-                    showToast("连接失败 " + reason);
+                    showToast("Connection Failed " + reason);
                     dismissLoadingDialog();
                 }
             });
@@ -291,19 +305,31 @@ public class SendFileActivity extends BaseActivity {
                 if (wifiP2pManager != null && channel != null) {
                     startActivity(new Intent(android.provider.Settings.ACTION_WIFI_SETTINGS));
                 } else {
-                    showToast("当前设备不支持Wifi Direct");
+                    showToast("\n" +
+                            "Not supported by current device Wifi Direct");
                 }
                 return true;
             }
             case R.id.menuDirectDiscover: {
                 if (!wifiP2pEnabled) {
-                    showToast("需要先打开Wifi");
+                    showToast("Need to open first:Wifi");
                     return true;
                 }
-                loadingDialog.show("正在搜索附近设备", true, false);
+                loadingDialog.show("\n" +
+                        "Searching for nearby devices", true, false);
                 wifiP2pDeviceList.clear();
                 deviceAdapter.notifyDataSetChanged();
                 //搜寻附近带有 Wi-Fi P2P 的设备
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    return true;
+                }
                 wifiP2pManager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
                     @Override
                     public void onSuccess() {

@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/FileTransfer.iml" filepath="$PROJECT_DIR$/FileTransfer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/WifiP2P.iml" filepath="$PROJECT_DIR$/.idea/modules/WifiP2P.iml" group="WifiP2P" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/WifiP2P-app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/WifiP2P-app.iml" group="WifiP2P/app" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
